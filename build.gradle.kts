@@ -4,6 +4,7 @@ import kotlinx.knit.KnitPluginExtension
 import org.jetbrains.dokka.gradle.DokkaMultiModuleTask
 import org.jetbrains.dokka.gradle.DokkaTaskPartial
 import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
+import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetContainer
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
 
@@ -75,8 +76,14 @@ val enableCompatibilityMetadataVariant =
     .orNull?.toBoolean() == true
 
 subprojects {
-  this@subprojects.tasks.withType<DokkaTaskPartial>().configureEach {
-    this@subprojects.extensions.findByType<KotlinProjectExtension>()?.sourceSets?.forEach { kotlinSourceSet ->
+  afterEvaluate {
+    extensions.findByType<KotlinSourceSetContainer>()?.sourceSets?.forEach { kotlinSourceSet ->
+      kotlinSourceSet.languageSettings.languageVersion = "2.0"
+    }
+  }
+
+  tasks.withType<DokkaTaskPartial>().configureEach {
+    extensions.findByType<KotlinSourceSetContainer>()?.sourceSets?.forEach { kotlinSourceSet ->
       dokkaSourceSets.named(kotlinSourceSet.name) {
         perPackageOption {
           matchingRegex.set(".*\\.internal.*")
